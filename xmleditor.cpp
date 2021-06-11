@@ -5,15 +5,15 @@ XmlEditor::XmlEditor(QObject *parent) : QObject(parent)
 
 }
 
-void XmlEditor::readXml(QString path, TreeModel *model){
-    QFile file(path);
+void XmlEditor::readXml(QUrl path, TreeModel *model){
+    QFile file(path.toLocalFile());
     if(!file.open(QFile::ReadOnly | QIODevice::Text)){
-        qDebug() << "Couldn't open file\n";
+        qDebug() << "Не удалось открыть файл\n";
         return;
     }
     QDomDocument document;
     if(!document.setContent(&file)){
-        qDebug() << "Couldn't open file\n";
+        qDebug() << "Не удалось открыть файл\n";
         file.close();
         return;
     }
@@ -24,8 +24,44 @@ void XmlEditor::readXml(QString path, TreeModel *model){
     file.close();
 }
 
-void XmlEditor::writeXml(QString path){
+void XmlEditor::writeXml(QUrl path, TreeModel *model){
+    QDomDocument document;
+    QDomElement root = document.createElement("departments");
+    TreeNode *rootNode = model->getRootNode();
 
+    for(int i = 0; i < rootNode->count(); i++){
+        TreeNode *department = rootNode->getChild(i);
+        TreeNode *employments = department->getChild(0);
+        QDomElement departmentElement = document.createElement("department");
+        QDomElement employmentsElement = document.createElement("employments");
+        departmentElement.setAttribute("name", department->getData());
+
+        for(int j = 0; j < employments->count(); j++){
+            TreeNode *employment = employments->getChild(j);
+            QDomElement employementElement = document.createElement("employment");
+            for(int k = 0; k < employment->count(); k++){
+                TreeNode *leaf = employment->getChild(k);
+                QDomElement leafElement = document.createElement(leaf->getTag().toString());
+                QDomText text = document.createTextNode(leaf->getData());
+                leafElement.appendChild(text);
+                employementElement.appendChild(leafElement);
+            }
+            employmentsElement.appendChild(employementElement);
+        }
+        root.appendChild(departmentElement);
+        departmentElement.appendChild(employmentsElement);
+    }
+    document.appendChild(root);
+    QFile file(path.toLocalFile());
+    if(!file.open(QIODevice::WriteOnly | QIODevice::Text)){
+        qDebug() << "Не удалось открыть файл";
+        return;
+    }
+
+    QTextStream stream(&file);
+    stream.setCodec("UTF-8");
+    stream << document.toString();
+    file.close();
 }
 
 void XmlEditor::traverseRead(QDomElement rootElement, TreeNode *parentNode, TreeModel *model){

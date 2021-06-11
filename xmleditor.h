@@ -16,8 +16,8 @@ class XmlEditor : public QObject
     void traverseRead(QDomElement rootElement, TreeNode *parentNode, TreeModel *model);
 public:
     explicit XmlEditor(QObject *parent = nullptr);
-    Q_INVOKABLE void readXml(QString path, TreeModel *model);
-    Q_INVOKABLE void writeXml(QString path);
+    Q_INVOKABLE void readXml(QUrl path, TreeModel *model);
+    Q_INVOKABLE void writeXml(QUrl path, TreeModel *model);
 signals:
 
 };

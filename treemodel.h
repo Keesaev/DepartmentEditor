@@ -31,7 +31,9 @@ public:
     Q_INVOKABLE void removeNode(const QModelIndex &index);
     Q_INVOKABLE void editNodeData(const QModelIndex &index, QVariant data);
     Q_INVOKABLE void addEmployment(const QModelIndex &index, QVariantList data);
+    Q_INVOKABLE void clear();
     void appendNode(TreeNode *child, TreeNode *parent = nullptr);
+    TreeNode *getRootNode();
 
 protected:
     TreeNode *getNode(const QModelIndex &index) const;

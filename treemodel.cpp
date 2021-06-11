@@ -163,3 +163,13 @@ QHash<int, QByteArray> TreeModel::roleNames() const{
         { Qt::UserRole, "name"}
     };
 }
+
+TreeNode *TreeModel::getRootNode(){
+    return m_rootNode;
+}
+
+void TreeModel::clear(){
+    beginResetModel();
+    m_rootNode->clear();
+    endResetModel();
+}

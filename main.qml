@@ -5,6 +5,7 @@ import QtQuick.Controls 1.4 as OldControls
 import XmlEditor 1.1
 import TreeModel 1.1
 import QtQuick.Dialogs 1.2
+import Qt.labs.platform 1.1 as Labs
 
 Window {
     width: 640
@@ -61,11 +62,36 @@ Window {
             top: treeView.bottom
             bottom: parent.bottom
         }
-        Button{
-            width: 100; height: parent.height
-            text: "Добавить отдел"
-            onClicked:{
-                dialogCreateDep.open()
+        Row{
+            anchors.fill: parent
+            spacing: 5
+            Button{
+                width: 100; height: parent.height
+                text: "Добавить отдел"
+                onClicked:{
+                    dialogCreateDep.open()
+                }
+            }
+            Button{
+                width: 100; height: parent.height
+                text: "Открыть"
+                onClicked:{
+                    openDialog.open()
+                }
+            }
+            Button{
+                width: 100; height: parent.height
+                text: "Сохранить"
+                onClicked:{
+                    saveDialog.open()
+                }
+            }
+            Button{
+                width: 100; height: parent.height
+                text: "Очистить"
+                onClicked:{
+                    treeModel.clear()
+                }
             }
         }
     }
@@ -147,11 +173,34 @@ Window {
         }
     }
 
-    TreeModel{
-        id: treeModel
+    Labs.FileDialog{
+        id: openDialog
+        fileMode: Labs.FileDialog.OpenFile
+        nameFilters: ["XML files (*.xml)"]
+        onAccepted: {
+            treeModel.clear()
+            xmlEditor.readXml(file, treeModel)
+            close()
+        }
+        onRejected: {
+            close()
+        }
     }
 
-    Component.onCompleted: {
-        xmlEditor.readXml("D:/qt_projects/tst.xml", treeModel)
+    Labs.FileDialog{
+        id: saveDialog
+        fileMode: Labs.FileDialog.SaveFile
+        defaultSuffix: "xml"
+        onAccepted: {
+            xmlEditor.writeXml(file, treeModel)
+            close()
+        }
+        onRejected: {
+            close()
+        }
+    }
+
+    TreeModel{
+        id: treeModel
     }
 }

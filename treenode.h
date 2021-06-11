@@ -16,16 +16,17 @@ public:
     void appendNode(TreeNode *node);
     TreeNode *parentNode() const;
     void setParentNode(TreeNode *parent);
-    TreeNode *getChild(int index) const;    // Получить дочерний узел по индексу
+    TreeNode *getChild(int index) const;
     void clear();
     QVariant data();
     void setData(QVariant data);
+    QString getData();
     QVariant getTag();
     void removeChild(TreeNode *node);
     int getChildIndex(TreeNode *node);
 
-    int row() const;                        // Индекс в родительском списке узлов
-    int count() const;                      // Число дочерних узлов
+    int row() const;
+    int count() const;
 private:
     QList<TreeNode *> m_nodes;
     TreeNode *m_parentNode;

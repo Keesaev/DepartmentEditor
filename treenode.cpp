@@ -36,7 +36,6 @@ void TreeNode::appendNode(TreeNode *node){
 }
 
 int TreeNode::row() const{
-    // Обращаемся к списку m_nodes родительской ноды и получаем индекс данной ноды
     TreeNode *parent = parentNode();
     if(parent){
         return parent->m_nodes.indexOf(const_cast<TreeNode *>(this));
@@ -70,4 +69,8 @@ int TreeNode::getChildIndex(TreeNode *node){
         return m_nodes.indexOf(node);
     else
         return -1;
+}
+
+QString TreeNode::getData(){
+    return m_data.toString();
 }
