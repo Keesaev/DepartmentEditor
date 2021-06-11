@@ -1,46 +1,15 @@
 #include "treenode.h"
 
-TreeNode::TreeNode(QObject *parent) : QObject(parent), m_parentNode(nullptr)
+TreeNode::TreeNode(QVariant data, QVariant tag, TreeNode *parentNode, QObject *parent) :
+    QObject(parent),
+    m_parentNode(parentNode),
+    m_data(data),
+    m_tag(tag)
 {
 }
 
-// Методы для QQmlListProperty
-// https://doc.qt.io/qt-5/qqmllistproperty.html#details
-void append_element(QQmlListProperty<TreeNode> *property, TreeNode *value)
-{
-    TreeNode *parent = (qobject_cast<TreeNode *>(property->object));
-    value->setParentNode(parent);
-    parent->insertNode(value, -1);
-}
-
-int count_element(QQmlListProperty<TreeNode> *property)
-{
-    TreeNode *parent = (qobject_cast<TreeNode *>(property->object));
-    return parent->count();
-}
-
-TreeNode *at_element(QQmlListProperty<TreeNode> *property, int index)
-{
-    TreeNode *parent = (qobject_cast<TreeNode *>(property->object));
-    if(index < 0 || index >= parent->count())
-        return nullptr;
-    return parent->getChild(index);
-}
-
-void clear_element(QQmlListProperty<TreeNode> *property)
-{
-    TreeNode *parent = (qobject_cast<TreeNode *>(property->object));
-    parent->clear();
-}
-
-QQmlListProperty<TreeNode> TreeNode::nodes(){
-    QQmlListProperty<TreeNode> list(this,
-                                    0,
-                                    &append_element,
-                                    &count_element,
-                                    &at_element,
-                                    &clear_element);
-    return list;
+TreeNode::~TreeNode(){
+    qDeleteAll(m_nodes);
 }
 
 void TreeNode::setParentNode(TreeNode *parent){
@@ -62,17 +31,11 @@ void TreeNode::clear(){
     m_nodes.clear();
 }
 
-bool TreeNode::insertNode(TreeNode *node, int pos){
-    if(pos > m_nodes.count())
-        return false;
-    // Позиция не указана
-    if(pos < 0)
-        pos = m_nodes.count();
-    m_nodes.insert(pos, node);
-    return true;
+void TreeNode::appendNode(TreeNode *node){
+    m_nodes.append(node);
 }
 
-int TreeNode::pos() const{
+int TreeNode::row() const{
     // Обращаемся к списку m_nodes родительской ноды и получаем индекс данной ноды
     TreeNode *parent = parentNode();
     if(parent){
@@ -85,4 +48,26 @@ int TreeNode::count() const{
     return m_nodes.count();
 }
 
+QVariant TreeNode::data(){
+    return m_data;
+}
 
+void TreeNode::setData(QVariant data){
+    m_data = data;
+}
+
+QVariant TreeNode::getTag(){
+    return m_tag;
+}
+
+void TreeNode::removeChild(TreeNode *node){
+    node->clear();
+    m_nodes.removeAt(m_nodes.indexOf(node));
+}
+
+int TreeNode::getChildIndex(TreeNode *node){
+    if(m_nodes.contains(node))
+        return m_nodes.indexOf(node);
+    else
+        return -1;
+}

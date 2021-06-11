@@ -6,16 +6,17 @@
 #include <QtXml>
 #include <QFile>
 #include <QDebug>
+#include <treemodel.h>
+#include <treenode.h>
 
 class XmlEditor : public QObject
 {
     QML_ELEMENT
     Q_OBJECT
-    void getAttributes(QDomElement rootElement, QString name, QStringList attributes);
-    void traverse(QDomElement rootElement);
+    void traverseRead(QDomElement rootElement, TreeNode *parentNode, TreeModel *model);
 public:
     explicit XmlEditor(QObject *parent = nullptr);
-    Q_INVOKABLE void readXml(QString path);
+    Q_INVOKABLE void readXml(QString path, TreeModel *model);
     Q_INVOKABLE void writeXml(QString path);
 signals:
 

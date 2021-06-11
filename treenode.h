@@ -3,30 +3,34 @@
 
 #include <QObject>
 #include <QtQml>
-#include <QQmlListProperty>
 
+// https://doc.qt.io/qt-5/qtwidgets-itemviews-simpletreemodel-example.html
 class TreeNode : public QObject
 {
     Q_OBJECT
+    QML_ELEMENT
 public:
-    explicit TreeNode(QObject *parent = nullptr);
-    Q_PROPERTY(QQmlListProperty<TreeNode> nodes READ nodes)
-    Q_CLASSINFO("DefaultProperty", "nodes")
+    explicit TreeNode(QVariant data = NULL, QVariant tag = NULL, TreeNode *parentNode = nullptr, QObject *parent = nullptr);
+    ~TreeNode();
 
+    void appendNode(TreeNode *node);
+    TreeNode *parentNode() const;
     void setParentNode(TreeNode *parent);
-    Q_INVOKABLE TreeNode *parentNode() const;
-    bool insertNode(TreeNode *node, int pos = (-1));
-    QQmlListProperty<TreeNode> nodes();
-
-    TreeNode *getChild(int index) const;
+    TreeNode *getChild(int index) const;    // Получить дочерний узел по индексу
     void clear();
+    QVariant data();
+    void setData(QVariant data);
+    QVariant getTag();
+    void removeChild(TreeNode *node);
+    int getChildIndex(TreeNode *node);
 
-    Q_INVOKABLE int pos() const;
-    Q_INVOKABLE int count() const;
+    int row() const;                        // Индекс в родительском списке узлов
+    int count() const;                      // Число дочерних узлов
 private:
     QList<TreeNode *> m_nodes;
     TreeNode *m_parentNode;
-
+    QVariant m_data;
+    QVariant m_tag;
 };
 
 #endif // TREENODE_H

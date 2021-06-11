@@ -1,5 +1,8 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>SingleInputDialog.qml</file>
+        <file>MultipleInputDialog.qml</file>
+        <file>InputRow.qml</file>
     </qresource>
 </RCC>

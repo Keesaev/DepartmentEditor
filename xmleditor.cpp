@@ -5,7 +5,7 @@ XmlEditor::XmlEditor(QObject *parent) : QObject(parent)
 
 }
 
-void XmlEditor::readXml(QString path){
+void XmlEditor::readXml(QString path, TreeModel *model){
     QFile file(path);
     if(!file.open(QFile::ReadOnly | QIODevice::Text)){
         qDebug() << "Couldn't open file\n";
@@ -19,7 +19,7 @@ void XmlEditor::readXml(QString path){
     }
 
     QDomElement rootElement = document.firstChildElement();
-    traverse(rootElement);
+    traverseRead(rootElement, nullptr, model);
 
     file.close();
 }
@@ -28,29 +28,30 @@ void XmlEditor::writeXml(QString path){
 
 }
 
-void XmlEditor::traverse(QDomElement rootElement){
+void XmlEditor::traverseRead(QDomElement rootElement, TreeNode *parentNode, TreeModel *model){
     for(QDomNode n = rootElement.firstChildElement(); !n.isNull(); n = n.nextSibling()){
         if(n.isElement()){
             QDomElement element = n.toElement();
-            if(!element.text().isEmpty()){
-                qDebug() << element.text();
+            if(element.tagName() == "department"){
+                TreeNode *node = new TreeNode(element.attribute("name"), element.tagName());
+                traverseRead(element, node, model);
+                model->appendNode(node, parentNode);
             }
-            if(!element.firstChildElement().isNull())
-                traverse(element);
+            else if(element.tagName() == "employments"){
+                TreeNode *node = new TreeNode("Сотрудники", element.tagName(), parentNode);
+                traverseRead(element, node, model);
+                parentNode->appendNode(node);
+            }
+            else if(element.tagName() == "employment"){
+                TreeNode *node = new TreeNode("Сотрудник", element.tagName(), parentNode);
+                traverseRead(element, node, model);
+                parentNode->appendNode(node);
+            }
+            else{
+                TreeNode *node = new TreeNode(element.text(), element.tagName(), parentNode);
+                parentNode->appendNode(node);
+            }
         }
     }
 }
 
-void XmlEditor::getAttributes(QDomElement rootElement, QString tag, QStringList attributes){
-    QDomNodeList nodes = rootElement.elementsByTagName(tag);
-
-    for(int i = 0; i < nodes.count(); i++){
-        QDomNode node = nodes.at(i);
-        if(node.isElement()){
-            QDomElement element = node.toElement();
-            for(auto i : attributes){
-                qDebug() << element.attribute(i);
-            }
-        }
-    }
-}

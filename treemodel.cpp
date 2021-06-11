@@ -2,29 +2,27 @@
 
 TreeModel::TreeModel(QObject *parent) : QAbstractItemModel(parent)
 {
-    m_rootNode = new TreeNode(nullptr);
+    m_rootNode = new TreeNode();
 }
 
 TreeModel::~TreeModel(){
     delete m_rootNode;
 }
 
-QHash<int, QByteArray> TreeModel::roleNames() const{
-    return m_roles;
-}
-
 QVariant TreeModel::data(const QModelIndex &index, int role) const{
     if(!index.isValid())
         return QVariant();
-    TreeNode *item = static_cast<TreeNode*>(index.internalPointer());
-    QByteArray roleName = m_roles[role];
-    QVariant name = item->property(roleName.data());
-    return name;
+    /*
+    if(role != Qt::DisplayRole)
+        return QVariant();
+    */
+    TreeNode *node = static_cast<TreeNode*>(index.internalPointer());
+    return node->data();
 }
 
 Qt::ItemFlags TreeModel::flags(const QModelIndex &index) const{
     if(!index.isValid())
-        return 0;
+        return Qt::NoItemFlags;
     return QAbstractItemModel::flags(index);
 }
 
@@ -48,7 +46,7 @@ QModelIndex TreeModel::parent(const QModelIndex &index) const{
 
     if(parentItem == m_rootNode)
         return QModelIndex();
-    return createIndex(parentItem->pos(), 0, parentItem);
+    return createIndex(parentItem->row(), 0, parentItem);
 }
 
 int TreeModel::rowCount(const QModelIndex &parent) const{
@@ -62,27 +60,9 @@ int TreeModel::columnCount(const QModelIndex &parent) const{
     return 1;
 }
 
-QQmlListProperty<TreeNode> TreeModel::nodes(){
-    return m_rootNode->nodes();
-}
-
-QVariantList TreeModel::roles() const{
-    QVariantList list;
-    QHashIterator<int, QByteArray> i(m_roles);
-    while(i.hasNext())
-    {
-        i.next();
-        list.append(i.value());
-    }
-    return list;
-}
-
-void TreeModel::setRoles(const QVariantList &roles){
-    static int nextRole = Qt::UserRole + 1;
-    for(auto role : roles){
-        m_roles.insert(nextRole, role.toByteArray());
-        nextRole++;
-    }
+QVariant TreeModel::getTagByIndex(const QModelIndex &index){
+    TreeNode *node = getNodeByIndex(index);
+    return node->getTag();
 }
 
 TreeNode *TreeModel::getNodeByIndex(const QModelIndex &index){
@@ -96,7 +76,7 @@ QModelIndex TreeModel::getIndexByNode(TreeNode *node){
     QModelIndex result;
     if(node){
         do{
-            int pos = node->pos();
+            int pos = node->row();
             positions.append(pos);
             node = node->parentNode();
         }while(node != nullptr);
@@ -108,22 +88,78 @@ QModelIndex TreeModel::getIndexByNode(TreeNode *node){
     return result;
 }
 
-bool TreeModel::insertNode(TreeNode *childNode, const QModelIndex &parent, int pos){
+void TreeModel::appendNode(TreeNode *child, TreeNode *parent){
+    if(parent == nullptr)
+        parent = m_rootNode;
+    QModelIndex index = getIndexByNode(parent);
+    child->setParentNode(parent);
+    beginInsertRows(index, parent->count(), parent->count());
+    parent->appendNode(child);
+    endInsertRows();
+}
+
+void TreeModel::editNodeData(const QModelIndex &index, QVariant data){
+    TreeNode *node = getNodeByIndex(index);
+    node->setData(data);
+    emit dataChanged(index, index, QVector<int>{Qt::UserRole});
+}
+
+void TreeModel::addEmployment(const QModelIndex &index, QVariantList data){
+    TreeNode *parentNode = getNodeByIndex(index);
+    TreeNode *employment = new TreeNode("Сотрудник", "employment");
+    QList<QString> tags = {"surname", "name", "middleName", "function", "salary"};
+    for(int i = 0; i < 5; i++){
+        TreeNode *node = new TreeNode(data[i], tags[i], employment);
+        employment->appendNode(node);
+    }
+    appendNode(employment, parentNode);
+}
+
+void TreeModel::insertNode(TreeNode *childNode, const QModelIndex &parent, int pos){
     TreeNode *parentElement = getNode(parent);
     if(pos >= parentElement->count())
-        return false;
+        return;
     if(pos < 0)
         pos = parentElement->count();
 
     childNode->setParentNode(parentElement);
     beginInsertRows(parent, pos, pos);
-    bool retVal = parentElement->insertNode(childNode, pos);
+    parentElement->appendNode(childNode);
     endInsertRows();
-    return retVal;
+}
+
+void TreeModel::createNode(QVariant data, QVariant tag, const QModelIndex index){
+    TreeNode *parentNode = getNodeByIndex(index);
+    TreeNode *node = new TreeNode(data, tag);
+    appendNode(node, parentNode);
+}
+
+void TreeModel::createDepartment(QVariant data){
+    TreeNode *department = new TreeNode(data, "department");
+    appendNode(department, m_rootNode);
+    TreeNode *emplyments = new TreeNode("Сотрудники", "employments");
+    appendNode(emplyments, department);
+}
+
+void TreeModel::removeNode(const QModelIndex &index){
+    TreeNode *node = getNodeByIndex(index);
+    TreeNode *parentNode = node->parentNode();
+    if(parentNode == nullptr)
+        parentNode = m_rootNode;
+    QModelIndex parentIndex = getIndexByNode(parentNode);
+    beginRemoveRows(parentIndex, parentNode->getChildIndex(node), parentNode->getChildIndex(node));
+    parentNode->removeChild(node);
+    endRemoveRows();
 }
 
 TreeNode *TreeModel::getNode(const QModelIndex &index) const{
     if(index.isValid())
         return static_cast<TreeNode*>(index.internalPointer());
     return m_rootNode;
+}
+
+QHash<int, QByteArray> TreeModel::roleNames() const{
+    return QHash<int, QByteArray> {
+        { Qt::UserRole, "name"}
+    };
 }
