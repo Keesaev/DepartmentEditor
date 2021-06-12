@@ -1,5 +1,7 @@
 import QtQuick 2.0
 
+// Часть разметки, представляющая собой поле для ввода данных
+// Используется в MultipleInputDialog
 Row{
     width: 250; height: 35
     spacing: 10

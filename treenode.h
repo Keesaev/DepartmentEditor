@@ -10,19 +10,21 @@ class TreeNode : public QObject
     Q_OBJECT
     QML_ELEMENT
 public:
-    explicit TreeNode(QVariant data = NULL, QVariant tag = NULL, TreeNode *parentNode = nullptr, QObject *parent = nullptr);
+    explicit TreeNode(QVariant data = QVariant(), QVariant tag = QVariant(), TreeNode *parentNode = nullptr, QObject *parent = nullptr);
     ~TreeNode();
 
-    void appendNode(TreeNode *node);
-    TreeNode *parentNode() const;
-    void setParentNode(TreeNode *parent);
-    TreeNode *getChild(int index) const;
+    void appendChild(TreeNode *node);
     void clear();
-    QVariant data();
-    void setData(QVariant data);
-    QString getData();
-    QVariant getTag();
     void removeChild(TreeNode *node);
+
+    void setParentNode(TreeNode *parent);
+    void setData(QVariant data);
+    void setTag(QVariant tag);
+
+    TreeNode *getParentNode() const;
+    TreeNode *getChild(int index) const;
+    QVariant getData();
+    QVariant getTag();
     int getChildIndex(TreeNode *node);
 
     int row() const;

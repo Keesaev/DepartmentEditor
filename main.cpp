@@ -3,6 +3,7 @@
 #include <xmleditor.h>
 #include <treemodel.h>
 #include <treenode.h>
+#include <history.h>
 
 int main(int argc, char *argv[])
 {
@@ -20,6 +21,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<XmlEditor>("XmlEditor", 1, 1, "XmlEditor");
     qmlRegisterType<TreeModel>("TreeModel", 1, 1, "TreeModel");
     qmlRegisterType<TreeNode>("TreeModel", 1, 1, "TreeNode");
+    qmlRegisterType<History>("TreeModel", 1, 1, "History");
     engine.load(url);
 
     return app.exec();

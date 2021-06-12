@@ -13,11 +13,6 @@ Window {
     visible: true
     title: qsTr("Hello World")
 
-    XmlEditor{
-        id: xmlEditor
-
-    }
-
     OldControls.TreeView{
         id: treeView
         width: parent.width; height: parent.height * 0.9
@@ -36,23 +31,24 @@ Window {
 
         onDoubleClicked: {
             var tag = treeModel.getTagByIndex(index)
-            if(tag == "department")
+            if(tag === "department")
                 departmentMenu.popup()
-            else if (tag == "employments"){
+            else if (tag === "employments"){
                 employmentsMenu.popup()
             }
-            else if (tag == "employment"){
+            else if (tag === "employment"){
                 employmentMenu.popup()
             }
 
-            else if(tag == "surname" || tag == "name" ||
-                    tag == "middleName" || tag == "function" ||
-                    tag == "salary"){
+            else if(tag === "surname" || tag === "name" ||
+                    tag === "middleName" || tag === "function" ||
+                    tag === "salary"){
                 editMenu.popup()
             }
         }
     }
 
+    // Кнопки
     Item{
         id: bottomRect
         width: parent.width; height: parent.height * 0.1
@@ -88,6 +84,13 @@ Window {
             }
             Button{
                 width: 100; height: parent.height
+                text: "Отмена"
+                onClicked:{
+                    history.revertState(treeModel)
+                }
+            }
+            Button{
+                width: 100; height: parent.height
                 text: "Очистить"
                 onClicked:{
                     treeModel.clear()
@@ -96,10 +99,13 @@ Window {
         }
     }
 
+    // Диалоги
+
     SingleInputDialog{
         id: editDialog
         title: "Введите новое название"
         onAccepted: {
+            history.saveState(treeModel)
             treeModel.editNodeData(treeView.currentIndex, input)
         }
     }
@@ -109,6 +115,7 @@ Window {
         title: "Введите название отдела"
 
         onAccepted: {
+            history.saveState(treeModel)
             treeModel.createDepartment(input);
         }
     }
@@ -116,9 +123,41 @@ Window {
     MultipleInputDialog{
         id: dialogAddEmployment
         onAccepted: {
-            treeModel.addEmployment(treeView.currentIndex, input)
+            history.saveState(treeModel)
+            treeModel.createEmployment(treeView.currentIndex, input)
         }
     }
+
+    // При открытии файла очищаем текущую модель и историю операций
+    Labs.FileDialog{
+        id: openDialog
+        fileMode: Labs.FileDialog.OpenFile
+        nameFilters: ["XML files (*.xml)"]
+        onAccepted: {
+            treeModel.clear()
+            history.clear()
+            xmlEditor.readXml(file, treeModel)
+            close()
+        }
+        onRejected: {
+            close()
+        }
+    }
+
+    Labs.FileDialog{
+        id: saveDialog
+        fileMode: Labs.FileDialog.SaveFile
+        defaultSuffix: "xml"
+        onAccepted: {
+            xmlEditor.writeXml(file, treeModel)
+            close()
+        }
+        onRejected: {
+            close()
+        }
+    }
+
+    // Всплывающие меню
 
     Menu{
         id: departmentMenu
@@ -133,6 +172,7 @@ Window {
         {
             text: "Удалить отдел"
             onTriggered: {
+                history.saveState(treeModel)
                 treeModel.removeNode(treeView.currentIndex);
             }
         }
@@ -156,6 +196,7 @@ Window {
         MenuItem{
             text: "Удалить сотрудника"
             onTriggered: {
+                history.saveState(treeModel)
                 treeModel.removeNode(treeView.currentIndex);
             }
         }
@@ -173,34 +214,15 @@ Window {
         }
     }
 
-    Labs.FileDialog{
-        id: openDialog
-        fileMode: Labs.FileDialog.OpenFile
-        nameFilters: ["XML files (*.xml)"]
-        onAccepted: {
-            treeModel.clear()
-            xmlEditor.readXml(file, treeModel)
-            close()
-        }
-        onRejected: {
-            close()
-        }
-    }
-
-    Labs.FileDialog{
-        id: saveDialog
-        fileMode: Labs.FileDialog.SaveFile
-        defaultSuffix: "xml"
-        onAccepted: {
-            xmlEditor.writeXml(file, treeModel)
-            close()
-        }
-        onRejected: {
-            close()
-        }
-    }
-
     TreeModel{
         id: treeModel
+    }
+
+    History{
+        id: history
+    }
+
+    XmlEditor{
+        id: xmlEditor
     }
 }

@@ -9,14 +9,17 @@ TreeNode::TreeNode(QVariant data, QVariant tag, TreeNode *parentNode, QObject *p
 }
 
 TreeNode::~TreeNode(){
-    qDeleteAll(m_nodes);
+    for(int i = 0; i < m_nodes.count(); i++){
+        delete m_nodes.at(i);
+    }
+    m_nodes.clear();
 }
 
 void TreeNode::setParentNode(TreeNode *parent){
     m_parentNode = parent;
 }
 
-TreeNode *TreeNode::parentNode() const{
+TreeNode *TreeNode::getParentNode() const{
     return m_parentNode;
 }
 
@@ -27,16 +30,18 @@ TreeNode *TreeNode::getChild(int index) const{
 }
 
 void TreeNode::clear(){
-    qDeleteAll(m_nodes);
+    for(int i = 0; i < m_nodes.count(); i++){
+        delete m_nodes.at(i);
+    }
     m_nodes.clear();
 }
 
-void TreeNode::appendNode(TreeNode *node){
+void TreeNode::appendChild(TreeNode *node){
     m_nodes.append(node);
 }
 
 int TreeNode::row() const{
-    TreeNode *parent = parentNode();
+    TreeNode *parent = getParentNode();
     if(parent){
         return parent->m_nodes.indexOf(const_cast<TreeNode *>(this));
     }
@@ -45,10 +50,6 @@ int TreeNode::row() const{
 
 int TreeNode::count() const{
     return m_nodes.count();
-}
-
-QVariant TreeNode::data(){
-    return m_data;
 }
 
 void TreeNode::setData(QVariant data){
@@ -71,6 +72,10 @@ int TreeNode::getChildIndex(TreeNode *node){
         return -1;
 }
 
-QString TreeNode::getData(){
-    return m_data.toString();
+QVariant TreeNode::getData(){
+    return m_data;
+}
+
+void TreeNode::setTag(QVariant tag){
+    m_tag = tag;
 }
