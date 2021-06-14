@@ -99,9 +99,12 @@ void XmlEditor::writeXml(QUrl path, TreeModel *model){
         return;
     }
 
-    QTextStream stream(&file);
-    stream.setCodec("UTF-8");
-    stream << document.toString();
+    if(model->getRootNode()->count() > 0)
+    {
+        QTextStream stream(&file);
+        stream.setCodec("UTF-8");
+        stream << document.toString();
+    }
     file.close();
 }
 
