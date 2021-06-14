@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QtQml>
 #include <treenode.h>
+#include <unordered_map>
 
 // https://doc.qt.io/qt-5/qtwidgets-itemviews-simpletreemodel-example.html
 class TreeModel : public QAbstractItemModel
@@ -29,12 +30,13 @@ public:
     Q_INVOKABLE void editNodeData(const QModelIndex &index, QVariant data);
     Q_INVOKABLE void createEmployment(const QModelIndex &index, QVariantList data);
     Q_INVOKABLE void clear();
-    void calculateSalary();
-    Q_INVOKABLE void calculateEmployments();
+    void calculateSalary(TreeNode *departmentNode);
+    void countEmployments(TreeNode *departmentNode);
+    void countAllEmployments();
+    void calculateAllSalaries();
     void resetRoot(TreeNode *newRoot);
     void appendNode(TreeNode *child, TreeNode *parent = nullptr);
     TreeNode *getRootNode();
-
 private:
     TreeNode *m_rootNode;
 };

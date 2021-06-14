@@ -14,6 +14,13 @@ class XmlEditor : public QObject
     QML_ELEMENT
     Q_OBJECT
     void traverseRead(QDomElement rootElement, TreeNode *parentNode);
+    QMap<QVariant, QVariant> annotations = {
+        {"surname", "Фамилия"},
+        {"name", "Имя"},
+        {"middleName", "Отчество"},
+        {"function", "Должность"},
+        {"salary", "Зарплата"}
+    };
 public:
     explicit XmlEditor(QObject *parent = nullptr);
     Q_INVOKABLE void readXml(QUrl path, TreeModel *model);

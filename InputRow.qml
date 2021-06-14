@@ -9,8 +9,10 @@ Row{
     function getText(){
         return textInput.text
     }
+
     property string helpText: "Поле"
     property string defaultText: "Данные"
+    property var textValidator: null
 
     Rectangle{
         id: leftRect
@@ -32,6 +34,7 @@ Row{
             anchors.centerIn: parent
             verticalAlignment: TextInput.AlignVCenter
             horizontalAlignment: TextInput.AlignHCenter
+            validator: textValidator
         }
     }
 }

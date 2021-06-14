@@ -1,10 +1,11 @@
 #include "treenode.h"
 
-TreeNode::TreeNode(QVariant data, QVariant tag, TreeNode *parentNode, QObject *parent) :
+TreeNode::TreeNode(QVariant data, QVariant annotation, QVariant tag, TreeNode *parentNode, QObject *parent) :
     QObject(parent),
     m_parentNode(parentNode),
     m_data(data),
-    m_tag(tag)
+    m_tag(tag),
+    m_annotation(annotation)
 {
 }
 
@@ -75,4 +76,12 @@ QVariant TreeNode::getData(){
 
 void TreeNode::setTag(QVariant tag){
     m_tag = tag;
+}
+
+void TreeNode::setAnnotation(QVariant annotation){
+    m_annotation = annotation;
+}
+
+QVariant TreeNode::getAnnotation(){
+    return m_annotation;
 }

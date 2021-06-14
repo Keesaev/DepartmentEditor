@@ -29,6 +29,7 @@ void History::copyTree(TreeNode *root, TreeNode *newRoot, TreeNode *parentNode){
     else{
         newRoot->setData(root->getData());
         newRoot->setTag(root->getTag());
+        newRoot->setAnnotation(root->getAnnotation());
         newRoot->setParentNode(parentNode);
         for(int i = 0; i < root->count(); i++){
             TreeNode *child = new TreeNode();

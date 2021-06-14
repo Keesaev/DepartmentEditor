@@ -22,6 +22,8 @@ void XmlEditor::readXml(QUrl path, TreeModel *model){
     TreeNode *rootNode = new TreeNode();
     traverseRead(rootElement, rootNode);
     model->resetRoot(rootNode);
+    model->countAllEmployments();
+    model->calculateAllSalaries();
     rootNode->clear();
     delete rootNode;
 
@@ -34,23 +36,26 @@ void XmlEditor::traverseRead(QDomElement rootElement, TreeNode *parentNode){
         if(n.isElement()){
             QDomElement element = n.toElement();
             if(element.tagName() == "department"){
-                TreeNode *node = new TreeNode(element.attribute("name"), element.tagName(), parentNode);
+                TreeNode *node = new TreeNode(element.attribute("name"), "Отдел", element.tagName(), parentNode);
                 traverseRead(element, node);
                 parentNode->appendChild(node);
             }
             else if(element.tagName() == "employments"){
-                TreeNode *node = new TreeNode("Сотрудники", element.tagName(), parentNode);
+                TreeNode *node = new TreeNode("", "Сотрудники", element.tagName(), parentNode);
                 traverseRead(element, node);
                 parentNode->appendChild(node);
             }
             else if(element.tagName() == "employment"){
-                TreeNode *node = new TreeNode("Сотрудник", element.tagName(), parentNode);
+                TreeNode *node = new TreeNode("", "Сотрудник", element.tagName(), parentNode);
                 traverseRead(element, node);
                 parentNode->appendChild(node);
             }
             else{
-                TreeNode *node = new TreeNode(element.text(), element.tagName(), parentNode);
-                parentNode->appendChild(node);
+                auto an = annotations.find(element.tagName());
+                if(an != annotations.end()){
+                    TreeNode *node = new TreeNode(element.text(), an.value(), an.key(), parentNode);
+                    parentNode->appendChild(node);
+                }
             }
         }
     }
@@ -74,6 +79,8 @@ void XmlEditor::writeXml(QUrl path, TreeModel *model){
             QDomElement employementElement = document.createElement("employment");
             for(int k = 0; k < employment->count(); k++){
                 TreeNode *leaf = employment->getChild(k);
+                if(annotations.find(leaf->getTag()) == annotations.end())
+                    continue;
                 QDomElement leafElement = document.createElement(leaf->getTag().toString());
                 QDomText text = document.createTextNode(leaf->getData().toString());
                 leafElement.appendChild(text);

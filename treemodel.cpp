@@ -12,14 +12,24 @@ TreeModel::~TreeModel(){
 QVariant TreeModel::data(const QModelIndex &index, int role) const{
     if(!index.isValid())
         return QVariant();
-    /*
-     * Разделение на роли я опустил
-    if(role != Qt::DisplayRole)
-        return QVariant();
-    */
-    Q_UNUSED(role)
     TreeNode *node = static_cast<TreeNode*>(index.internalPointer());
-    return node->getData();
+    switch (role) {
+        case (Qt::UserRole):{
+            // Вместо аннотации отдела возвращаю его название, а аннотацию оставляю пустой
+            // Чисто из эстетических предпочтений, можно оставить как есть
+            if(node->getTag().toString() == "department")
+                return "";
+            return node->getData();
+        }
+        case(Qt::UserRole + 1):{
+            if(node->getTag().toString() == "department")
+                return node->getData();
+            return node->getAnnotation();
+        }
+        default:{
+            return QVariant();
+        }
+    }
 }
 
 Qt::ItemFlags TreeModel::flags(const QModelIndex &index) const{
@@ -104,30 +114,36 @@ void TreeModel::appendNode(TreeNode *child, TreeNode *parent){
 void TreeModel::editNodeData(const QModelIndex &index, QVariant data){
     TreeNode *node = getNodeByIndex(index);
     node->setData(data);
-    emit dataChanged(index, index, QVector<int>{Qt::UserRole});
+    emit dataChanged(index, index, QVector<int>{Qt::UserRole, Qt::UserRole + 1});
 }
 
 void TreeModel::createEmployment(const QModelIndex &index, QVariantList data){
     TreeNode *parentNode = getNodeByIndex(index);
-    TreeNode *employment = new TreeNode("Сотрудник", "employment");
+    TreeNode *employment = new TreeNode("", "Сотрудник", "employment");
     QList<QString> tags = {"surname", "name", "middleName", "function", "salary"};
+    QList<QString> annotations = {"Фамилия", "Имя", "Отчество", "Должность", "Зарплата"};
     for(int i = 0; i < 5; i++){
-        TreeNode *node = new TreeNode(data[i], tags[i], employment);
+        TreeNode *node = new TreeNode(data[i], annotations[i], tags[i], employment);
         employment->appendChild(node);
     }
     appendNode(employment, parentNode);
+    countEmployments(parentNode->getParentNode());
+    calculateSalary(parentNode->getParentNode());
 }
 
 void TreeModel::createDepartment(QVariant data){
-    TreeNode *department = new TreeNode(data, "department");
-    TreeNode *employments = new TreeNode("Сотрудники", "employments", department);
+    TreeNode *department = new TreeNode(data, "Отдел", "department");
+    TreeNode *employments = new TreeNode("", "Сотрудники", "employments", department);
     department->appendChild(employments);
     appendNode(department, nullptr);
+    countEmployments(department);
+    calculateSalary(department);
 }
 
 void TreeModel::removeNode(const QModelIndex &index){
     TreeNode *node = getNodeByIndex(index);
     TreeNode *parentNode = node->getParentNode();
+    QString tag = node->getTag().toString();
     if(parentNode == nullptr)
         parentNode = m_rootNode;
     QModelIndex parentIndex = getIndexByNode(parentNode);
@@ -135,11 +151,16 @@ void TreeModel::removeNode(const QModelIndex &index){
     parentNode->removeChild(node);
     delete node;
     endRemoveRows();
+    if(tag == "employment"){
+        countEmployments(parentNode->getParentNode());
+        calculateSalary(parentNode->getParentNode());
+    }
 }
 
 QHash<int, QByteArray> TreeModel::roleNames() const{
     return QHash<int, QByteArray> {
-        { Qt::UserRole, "name"}
+        { Qt::UserRole, "name" },
+        { Qt::UserRole + 1, "annotation" }
     };
 }
 
@@ -161,35 +182,82 @@ void TreeModel::resetRoot(TreeNode *newRoot){
     }
 }
 
-void TreeModel::calculateEmployments(){
-    for(int i = 0; i < m_rootNode->count(); i++){
-        TreeNode *departmentNode = m_rootNode->getChild(i);
-        TreeNode *numOfEmploymentsNode;
-        int numOfEmployments = 0;
-        for(int j = 0; j < departmentNode->count(); i++){
-            TreeNode *node = departmentNode->getChild(i);
-            if(node->getTag().toString() == "employments"){
-                numOfEmployments = node->count();
-            }
-            else if(node->getTag().toString() == "numOfEmployments"){
-                numOfEmploymentsNode = node;
-            }
+void TreeModel::countEmployments(TreeNode *departmentNode){
+    TreeNode *numOfEmploymentsNode = nullptr;
+    int numOfEmployments = 0;
+    for(int i = 0; i < departmentNode->count(); i++){
+        TreeNode *node = departmentNode->getChild(i);
+        QString tag = node->getTag().toString();
+        if(tag == "employments"){
+            numOfEmployments = node->count();
         }
-        // Добавляем ноду
-        if(numOfEmploymentsNode == nullptr){
-            beginInsertRows(getIndexByNode(departmentNode), departmentNode->count(), departmentNode->count());
-            numOfEmploymentsNode = new TreeNode(numOfEmployments, "numOfEmployments", departmentNode);
-            endInsertRows();
+        else if(tag == "numOfEmployments"){
+            numOfEmploymentsNode = node;
         }
-        // Изменяем число сотрудников
-        else{
-            numOfEmploymentsNode->setData(numOfEmployments);
-            QModelIndex index = getIndexByNode(numOfEmploymentsNode);
-            emit dataChanged(index, index, QVector<int>{Qt::UserRole});
-        }
+    }
+    if(numOfEmployments == 0)
+        return;
+    // Добавляем ноду
+    if(numOfEmploymentsNode == nullptr){
+        numOfEmploymentsNode = new TreeNode(numOfEmployments, "Число сотрудников", "numOfEmployments");
+        appendNode(numOfEmploymentsNode, departmentNode);
+    }
+    // Изменяем число сотрудников
+    else{
+        numOfEmploymentsNode->setData(numOfEmployments);
+        QModelIndex index = getIndexByNode(numOfEmploymentsNode);
+        emit dataChanged(index, index, QVector<int>{Qt::UserRole});
     }
 }
 
-void TreeModel::calculateSalary(){
+void TreeModel::countAllEmployments(){
+    for(int i = 0; i < m_rootNode->count(); i++){
+        TreeNode *department = m_rootNode->getChild(i);
+        countEmployments(department);
+    }
+}
 
+void TreeModel::calculateSalary(TreeNode *departmentNode){
+    TreeNode *salaryNode = nullptr;
+    int totalSum = 0;
+    int numOfEmployments = 0;
+    for(int i = 0; i < departmentNode->count(); i++){
+        TreeNode *node = departmentNode->getChild(i);
+        QString tag = node->getTag().toString();
+        if(tag == "employments"){
+            for(int i = 0; i < node->count(); i++){
+                TreeNode *employmentNode = node->getChild(i);
+                for(int i = 0; i < employmentNode->count(); i++){
+                    TreeNode *n = employmentNode->getChild(i);
+                    if(n->getTag().toString() == "salary"){
+                        totalSum += n->getData().toInt();
+                        numOfEmployments++;
+                        break;
+                    }
+                }
+            }
+        }
+        else if(tag == "averageSalary"){
+            salaryNode = node;
+        }
+    }
+    if(numOfEmployments == 0)
+        return;
+    int averageSum = totalSum / numOfEmployments;
+    if(salaryNode == nullptr){
+        salaryNode = new TreeNode(averageSum, "Средняя зарплата", "averageSalary");
+        appendNode(salaryNode, departmentNode);
+    }
+    else{
+        salaryNode->setData(averageSum);
+        QModelIndex index = getIndexByNode(salaryNode);
+        emit dataChanged(index, index, QVector<int>{Qt::UserRole});
+    }
+}
+
+void TreeModel::calculateAllSalaries(){
+    for(int i = 0; i < m_rootNode->count(); i++){
+        TreeNode *department = m_rootNode->getChild(i);
+        calculateSalary(department);
+    }
 }

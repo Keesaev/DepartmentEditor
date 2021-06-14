@@ -29,7 +29,10 @@ Dialog{
                 InputRow{ id: nameInput; defaultText: "Иван"; helpText: "Имя" }
                 InputRow{ id: middleNameInput; defaultText: "Иванович"; helpText: "Отчество" }
                 InputRow{ id: functionInput; defaultText: "Директор"; helpText: "Должность" }
-                InputRow{ id: salaryInput; defaultText: "100000"; helpText: "Зарплата" }
+                InputRow{ id: salaryInput; defaultText: "100000"; helpText: "Зарплата"; textValidator: IntValidator{ bottom: 0 } }
+                Component.onCompleted: {
+                    //  salaryInput.setIntOnly()
+                }
             }
         }
         Rectangle{

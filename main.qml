@@ -25,8 +25,13 @@ Window {
         model: treeModel
         OldControls.TableViewColumn{
             title: ""
+            role: "annotation"
+            width: 200
+        }
+        OldControls.TableViewColumn{
+            title: ""
             role: "name"
-            width: 400
+            width: 200
         }
 
         onDoubleClicked: {
