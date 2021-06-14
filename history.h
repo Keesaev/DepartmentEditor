@@ -12,11 +12,14 @@ class History : public QObject
 public:
     explicit History(QObject *parent = nullptr);
     Q_INVOKABLE void saveState(TreeModel *state);
-    Q_INVOKABLE void revertState(TreeModel *model);
+    Q_INVOKABLE void back(TreeModel *model);
+    Q_INVOKABLE void forward(TreeModel *model);
     Q_INVOKABLE bool isEmpty();
+    Q_INVOKABLE void reset(TreeModel *model);
     Q_INVOKABLE void clear();
 private:
-    QStack<TreeNode*> m_history; // Список корневых нод модели TreeModel
+    QList<TreeNode*> m_history; // Список корневых нод модели TreeModel
+    int m_state;
     void copyTree(TreeNode *root, TreeNode *newRoot, TreeNode *parentNode);
 };
 

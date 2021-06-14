@@ -84,9 +84,16 @@ Window {
             }
             Button{
                 width: 100; height: parent.height
-                text: "Отмена"
+                text: "<"
                 onClicked:{
-                    history.revertState(treeModel)
+                    history.back(treeModel)
+                }
+            }
+            Button{
+                width: 100; height: parent.height
+                text: ">"
+                onClicked:{
+                    history.forward(treeModel)
                 }
             }
             Button{
@@ -94,6 +101,7 @@ Window {
                 text: "Очистить"
                 onClicked:{
                     treeModel.clear()
+                    history.saveState(treeModel)
                 }
             }
         }
@@ -105,8 +113,8 @@ Window {
         id: editDialog
         title: "Введите новое название"
         onAccepted: {
-            history.saveState(treeModel)
             treeModel.editNodeData(treeView.currentIndex, input)
+            history.saveState(treeModel)
         }
     }
 
@@ -115,16 +123,16 @@ Window {
         title: "Введите название отдела"
 
         onAccepted: {
-            history.saveState(treeModel)
             treeModel.createDepartment(input);
+            history.saveState(treeModel)
         }
     }
 
     MultipleInputDialog{
         id: dialogAddEmployment
         onAccepted: {
-            history.saveState(treeModel)
             treeModel.createEmployment(treeView.currentIndex, input)
+            history.saveState(treeModel)
         }
     }
 
@@ -135,8 +143,8 @@ Window {
         nameFilters: ["XML files (*.xml)"]
         onAccepted: {
             treeModel.clear()
-            history.clear()
             xmlEditor.readXml(file, treeModel)
+            history.reset(treeModel)
             close()
         }
         onRejected: {
@@ -172,8 +180,8 @@ Window {
         {
             text: "Удалить отдел"
             onTriggered: {
-                history.saveState(treeModel)
                 treeModel.removeNode(treeView.currentIndex);
+                history.saveState(treeModel)
             }
         }
     }
@@ -196,8 +204,8 @@ Window {
         MenuItem{
             text: "Удалить сотрудника"
             onTriggered: {
-                history.saveState(treeModel)
                 treeModel.removeNode(treeView.currentIndex);
+                history.saveState(treeModel)
             }
         }
     }

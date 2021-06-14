@@ -149,7 +149,6 @@ TreeNode *TreeModel::getRootNode(){
 
 void TreeModel::clear(){
     beginResetModel();
-    m_rootNode->clear();
     delete m_rootNode;
     m_rootNode = new TreeNode();
     endResetModel();
@@ -160,4 +159,6 @@ void TreeModel::resetRoot(TreeNode *newRoot){
     for(int i = 0; i < newRoot->count(); i++){
         appendNode(newRoot->getChild(i), nullptr);
     }
+    newRoot->clear();
+    delete newRoot;
 }

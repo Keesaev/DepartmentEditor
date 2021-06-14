@@ -30,9 +30,6 @@ TreeNode *TreeNode::getChild(int index) const{
 }
 
 void TreeNode::clear(){
-    for(int i = 0; i < m_nodes.count(); i++){
-        delete m_nodes.at(i);
-    }
     m_nodes.clear();
 }
 
