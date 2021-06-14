@@ -9,11 +9,7 @@ History::History(QObject *parent) : QObject(parent), m_state(0)
 void History::saveState(TreeModel *state){
     TreeNode *root = state->getRootNode();
     TreeNode *newRoot = new TreeNode();
-    for(int i = 0; i < root->count(); i++){
-        TreeNode *newChild = new TreeNode();
-        copyTree(root->getChild(i), newChild, newRoot);
-        newRoot->appendChild(newChild);
-    }
+    copyTree(root, newRoot, nullptr);
     // Очищаем все отмененные состояния
     if(m_state != (m_history.size() - 1)){
         for(int i = m_state + 1; i < m_history.size(); i++){
@@ -55,11 +51,7 @@ void History::forward(TreeModel *model){
         m_state++;
         TreeNode *root = m_history[m_state];
         TreeNode *newRoot = new TreeNode();
-        for(int i = 0; i < root->count(); i++){
-            TreeNode *newChild = new TreeNode();
-            copyTree(root->getChild(i), newChild, newRoot);
-            newRoot->appendChild(newChild);
-        }
+        copyTree(root, newRoot, nullptr);
         qDebug() << "Forward: " << m_state;
         model->resetRoot(newRoot);
     }
@@ -73,11 +65,7 @@ void History::back(TreeModel *model){
 
         TreeNode *root = m_history[m_state];
         TreeNode *newRoot = new TreeNode();
-        for(int i = 0; i < root->count(); i++){
-            TreeNode *newChild = new TreeNode();
-            copyTree(root->getChild(i), newChild, newRoot);
-            newRoot->appendChild(newChild);
-        }
+        copyTree(root, newRoot, nullptr);
         qDebug() << "Back: " << m_state;
         model->resetRoot(newRoot);
     }
