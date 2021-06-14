@@ -13,7 +13,7 @@ class XmlEditor : public QObject
 {
     QML_ELEMENT
     Q_OBJECT
-    void traverseRead(QDomElement rootElement, TreeNode *parentNode, TreeModel *model);
+    void traverseRead(QDomElement rootElement, TreeNode *parentNode);
 public:
     explicit XmlEditor(QObject *parent = nullptr);
     Q_INVOKABLE void readXml(QUrl path, TreeModel *model);

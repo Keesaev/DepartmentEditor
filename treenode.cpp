@@ -9,8 +9,8 @@ TreeNode::TreeNode(QVariant data, QVariant tag, TreeNode *parentNode, QObject *p
 }
 
 TreeNode::~TreeNode(){
-    for(int i = 0; i < m_nodes.count(); i++){
-        delete m_nodes.at(i);
+    foreach(TreeNode *i, m_nodes){
+        delete i;
     }
     m_nodes.clear();
 }

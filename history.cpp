@@ -20,7 +20,6 @@ void History::saveState(TreeModel *state){
     }
     m_history.append(newRoot);
     m_state++;
-    qDebug() << "Added: " << m_state;
 }
 
 // Рекурсивный метод, копирующий дерево из root в newRoot
@@ -49,11 +48,11 @@ void History::forward(TreeModel *model){
             (m_state + 1) >= 0 &&
             (m_state + 1) < m_history.size()){
         m_state++;
-        TreeNode *root = m_history[m_state];
         TreeNode *newRoot = new TreeNode();
-        copyTree(root, newRoot, nullptr);
-        qDebug() << "Forward: " << m_state;
+        copyTree(m_history[m_state], newRoot, nullptr);
         model->resetRoot(newRoot);
+        newRoot->clear();
+        delete newRoot;
     }
 }
 
@@ -62,20 +61,19 @@ void History::back(TreeModel *model){
             (m_state - 1) >= 0 &&
             (m_state - 1) < m_history.size()){
         m_state--;
-
-        TreeNode *root = m_history[m_state];
+        // Передаём в model копию состояния, там она копируется в m_root
         TreeNode *newRoot = new TreeNode();
-        copyTree(root, newRoot, nullptr);
-        qDebug() << "Back: " << m_state;
+        copyTree(m_history[m_state], newRoot, nullptr);
         model->resetRoot(newRoot);
+        newRoot->clear();
+        delete newRoot;
     }
 }
 
 // Очищаем историю и записываем в качестве первого состояния пустую ноду
 void History::clear(){
-    for(auto i : m_history){
-        TreeNode *node = i;
-        delete node;
+    foreach(TreeNode *i, m_history){
+        delete i;
     }
     m_history.clear();
     m_history.append(new TreeNode());
@@ -84,9 +82,8 @@ void History::clear(){
 
 // Очищаем историю и устанавливаем первым элементом ноду указанной модели (при открытии файла, например)
 void History::reset(TreeModel *model){
-    for(auto i : m_history){
-        TreeNode *node = i;
-        delete node;
+    foreach(TreeNode *i, m_history){
+        delete i;
     }
     m_history.clear();
     m_state = -1;

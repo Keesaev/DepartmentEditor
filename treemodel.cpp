@@ -159,6 +159,37 @@ void TreeModel::resetRoot(TreeNode *newRoot){
     for(int i = 0; i < newRoot->count(); i++){
         appendNode(newRoot->getChild(i), nullptr);
     }
-    newRoot->clear();
-    delete newRoot;
+}
+
+void TreeModel::calculateEmployments(){
+    for(int i = 0; i < m_rootNode->count(); i++){
+        TreeNode *departmentNode = m_rootNode->getChild(i);
+        TreeNode *numOfEmploymentsNode;
+        int numOfEmployments = 0;
+        for(int j = 0; j < departmentNode->count(); i++){
+            TreeNode *node = departmentNode->getChild(i);
+            if(node->getTag().toString() == "employments"){
+                numOfEmployments = node->count();
+            }
+            else if(node->getTag().toString() == "numOfEmployments"){
+                numOfEmploymentsNode = node;
+            }
+        }
+        // Добавляем ноду
+        if(numOfEmploymentsNode == nullptr){
+            beginInsertRows(getIndexByNode(departmentNode), departmentNode->count(), departmentNode->count());
+            numOfEmploymentsNode = new TreeNode(numOfEmployments, "numOfEmployments", departmentNode);
+            endInsertRows();
+        }
+        // Изменяем число сотрудников
+        else{
+            numOfEmploymentsNode->setData(numOfEmployments);
+            QModelIndex index = getIndexByNode(numOfEmploymentsNode);
+            emit dataChanged(index, index, QVector<int>{Qt::UserRole});
+        }
+    }
+}
+
+void TreeModel::calculateSalary(){
+
 }

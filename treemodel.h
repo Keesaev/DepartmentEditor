@@ -29,6 +29,8 @@ public:
     Q_INVOKABLE void editNodeData(const QModelIndex &index, QVariant data);
     Q_INVOKABLE void createEmployment(const QModelIndex &index, QVariantList data);
     Q_INVOKABLE void clear();
+    void calculateSalary();
+    Q_INVOKABLE void calculateEmployments();
     void resetRoot(TreeNode *newRoot);
     void appendNode(TreeNode *child, TreeNode *parent = nullptr);
     TreeNode *getRootNode();

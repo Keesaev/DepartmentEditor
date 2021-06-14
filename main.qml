@@ -142,7 +142,6 @@ Window {
         fileMode: Labs.FileDialog.OpenFile
         nameFilters: ["XML files (*.xml)"]
         onAccepted: {
-            treeModel.clear()
             xmlEditor.readXml(file, treeModel)
             history.reset(treeModel)
             close()

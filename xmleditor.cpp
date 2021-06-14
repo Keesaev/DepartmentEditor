@@ -19,9 +19,41 @@ void XmlEditor::readXml(QUrl path, TreeModel *model){
     }
 
     QDomElement rootElement = document.firstChildElement();
-    traverseRead(rootElement, nullptr, model);
+    TreeNode *rootNode = new TreeNode();
+    traverseRead(rootElement, rootNode);
+    model->resetRoot(rootNode);
+    rootNode->clear();
+    delete rootNode;
 
     file.close();
+}
+
+// Рекурсивный метод, читающий ноды по корневому элементу rootElement, и записывающий элементы в parentNode
+void XmlEditor::traverseRead(QDomElement rootElement, TreeNode *parentNode){
+    for(QDomNode n = rootElement.firstChildElement(); !n.isNull(); n = n.nextSibling()){
+        if(n.isElement()){
+            QDomElement element = n.toElement();
+            if(element.tagName() == "department"){
+                TreeNode *node = new TreeNode(element.attribute("name"), element.tagName(), parentNode);
+                traverseRead(element, node);
+                parentNode->appendChild(node);
+            }
+            else if(element.tagName() == "employments"){
+                TreeNode *node = new TreeNode("Сотрудники", element.tagName(), parentNode);
+                traverseRead(element, node);
+                parentNode->appendChild(node);
+            }
+            else if(element.tagName() == "employment"){
+                TreeNode *node = new TreeNode("Сотрудник", element.tagName(), parentNode);
+                traverseRead(element, node);
+                parentNode->appendChild(node);
+            }
+            else{
+                TreeNode *node = new TreeNode(element.text(), element.tagName(), parentNode);
+                parentNode->appendChild(node);
+            }
+        }
+    }
 }
 
 // Составляем QDomDocument из модели и записываем в файл .xml
@@ -64,34 +96,5 @@ void XmlEditor::writeXml(QUrl path, TreeModel *model){
     stream.setCodec("UTF-8");
     stream << document.toString();
     file.close();
-}
-
-// Рекурсивный метод, читающий ноды по корневому элементу rootElement, и записывающий элементы
-// с тегом department в model
-void XmlEditor::traverseRead(QDomElement rootElement, TreeNode *parentNode, TreeModel *model){
-    for(QDomNode n = rootElement.firstChildElement(); !n.isNull(); n = n.nextSibling()){
-        if(n.isElement()){
-            QDomElement element = n.toElement();
-            if(element.tagName() == "department"){
-                TreeNode *node = new TreeNode(element.attribute("name"), element.tagName());
-                traverseRead(element, node, model);
-                model->appendNode(node, parentNode);
-            }
-            else if(element.tagName() == "employments"){
-                TreeNode *node = new TreeNode("Сотрудники", element.tagName(), parentNode);
-                traverseRead(element, node, model);
-                parentNode->appendChild(node);
-            }
-            else if(element.tagName() == "employment"){
-                TreeNode *node = new TreeNode("Сотрудник", element.tagName(), parentNode);
-                traverseRead(element, node, model);
-                parentNode->appendChild(node);
-            }
-            else{
-                TreeNode *node = new TreeNode(element.text(), element.tagName(), parentNode);
-                parentNode->appendChild(node);
-            }
-        }
-    }
 }
 
